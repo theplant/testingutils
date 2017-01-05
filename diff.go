@@ -3,6 +3,8 @@ package testingutils
 import (
 	"encoding/json"
 
+	"fmt"
+
 	"github.com/pmezard/go-difflib/difflib"
 )
 
@@ -23,4 +25,17 @@ func PrettyJsonDiff(expected interface{}, actual interface{}) (r string) {
 		r, _ = difflib.GetUnifiedDiffString(diff)
 	}
 	return
+}
+
+func PrintlnJson(vals ...interface{}) {
+	var newvals []interface{}
+	for _, v := range vals {
+		if s, ok := v.(string); ok {
+			newvals = append(newvals, s)
+			continue
+		}
+		j, _ := json.MarshalIndent(v, "", "\t")
+		newvals = append(newvals, "\n", string(j))
+	}
+	fmt.Println(newvals...)
 }
