@@ -12,12 +12,12 @@ import (
 It convert the two objects into pretty json, and diff them, output the result.
 */
 func PrettyJsonDiff(expected interface{}, actual interface{}) (r string) {
-	actualJson, _ := json.MarshalIndent(actual, "", "\t")
-	expectedJson, _ := json.MarshalIndent(expected, "", "\t")
-	if string(actualJson) != string(expectedJson) {
+	actualJson := marshalIfNotString(actual)
+	expectedJson := marshalIfNotString(expected)
+	if actualJson != expectedJson {
 		diff := difflib.UnifiedDiff{
-			A:        difflib.SplitLines(string(expectedJson)),
-			B:        difflib.SplitLines(string(actualJson)),
+			A:        difflib.SplitLines(expectedJson),
+			B:        difflib.SplitLines(actualJson),
 			FromFile: "Expected",
 			ToFile:   "Actual",
 			Context:  3,
@@ -38,4 +38,14 @@ func PrintlnJson(vals ...interface{}) {
 		newvals = append(newvals, "\n", string(j))
 	}
 	fmt.Println(newvals...)
+}
+
+func marshalIfNotString(v interface{}) (r string) {
+	var ok bool
+	if r, ok = v.(string); ok {
+		return
+	}
+	rbytes, _ := json.MarshalIndent(v, "", "\t")
+	r = string(rbytes)
+	return
 }
