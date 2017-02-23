@@ -5,6 +5,9 @@ import (
 
 	"fmt"
 
+	"io"
+	"io/ioutil"
+
 	"github.com/pmezard/go-difflib/difflib"
 )
 
@@ -12,8 +15,8 @@ import (
 It convert the two objects into pretty json, and diff them, output the result.
 */
 func PrettyJsonDiff(expected interface{}, actual interface{}) (r string) {
-	actualJson := marshalIfNotString(actual)
-	expectedJson := marshalIfNotString(expected)
+	actualJson := marshalIfNotStringOrReader(actual)
+	expectedJson := marshalIfNotStringOrReader(expected)
 	if actualJson != expectedJson {
 		diff := difflib.UnifiedDiff{
 			A:        difflib.SplitLines(expectedJson),
@@ -40,9 +43,16 @@ func PrintlnJson(vals ...interface{}) {
 	fmt.Println(newvals...)
 }
 
-func marshalIfNotString(v interface{}) (r string) {
+func marshalIfNotStringOrReader(v interface{}) (r string) {
 	var ok bool
 	if r, ok = v.(string); ok {
+		return
+	}
+
+	var rd io.Reader
+	if rd, ok = v.(io.Reader); ok {
+		bs, _ := ioutil.ReadAll(rd)
+		r = string(bs)
 		return
 	}
 	rbytes, _ := json.MarshalIndent(v, "", "\t")
