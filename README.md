@@ -4,6 +4,7 @@
 
 
 * [Pretty Json Diff](#pretty-json-diff)
+* [Println Json](#println-json)
 
 
 
@@ -56,6 +57,12 @@ It convert the two objects into pretty json, and diff them, output the result.
 	//  	}
 	//  }
 ```
+
+## Println Json
+``` go
+func PrintlnJson(vals ...interface{})
+```
+
 
 
 
