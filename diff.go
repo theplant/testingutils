@@ -15,8 +15,10 @@ import (
 It convert the two objects into pretty json, and diff them, output the result.
 */
 func PrettyJsonDiff(expected interface{}, actual interface{}) (r string) {
+
 	actualJson := marshalIfNotStringOrReader(actual)
 	expectedJson := marshalIfNotStringOrReader(expected)
+
 	if actualJson != expectedJson {
 		diff := difflib.UnifiedDiff{
 			A:        difflib.SplitLines(expectedJson),
@@ -46,6 +48,7 @@ func PrintlnJson(vals ...interface{}) {
 func marshalIfNotStringOrReader(v interface{}) (r string) {
 	var ok bool
 	if r, ok = v.(string); ok {
+		r = formatIfJson(r)
 		return
 	}
 
@@ -56,6 +59,25 @@ func marshalIfNotStringOrReader(v interface{}) (r string) {
 		return
 	}
 	rbytes, _ := json.MarshalIndent(v, "", "\t")
+	r = string(rbytes)
+	return
+}
+
+func formatIfJson(input string) (r string) {
+	var inputRawM json.RawMessage
+	var err error
+	err = json.Unmarshal([]byte(input), &inputRawM)
+	if err != nil {
+		r = input
+		return
+	}
+
+	var rbytes []byte
+	rbytes, err = json.MarshalIndent(inputRawM, "", "\t")
+	if err != nil {
+		r = input
+		return
+	}
 	r = string(rbytes)
 	return
 }

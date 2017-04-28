@@ -1,7 +1,6 @@
 package testingutils
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -49,19 +48,18 @@ func ExamplePrettyJsonDiff() {
 
 }
 
-func TestJSONRawMessage(t *testing.T) {
+func ExamplePrettyJsonDiff_JSONRawMessage(t *testing.T) {
 	str1 := `{
-		"Active": true,
-		"Addresses": [],
-		"Age": 0,
+"Active": true,
+	"Addresses": [],	"Age": 0,
 		"Avatar": "",
-		"Company": "",
+"Company": "",
 		"CreditCard": {
-			Number: "411111111111",
-			Issuer: "VISA",
+			"Number": "411111111111",
+			"Issuer": "VISA"
 		},
 		"ID": 1,
-		"Languages": null,
+	"Languages": null,
 		"Name": "jinzhu",
 		"Profile": {
 			"ID": 0,
@@ -98,9 +96,16 @@ func TestJSONRawMessage(t *testing.T) {
 		"Role": ""
 	}`
 
-	var json1, json2 json.RawMessage
-	json.Unmarshal([]byte(str1), &json1)
-	json.Unmarshal([]byte(str2), &json2)
-
-	fmt.Println(PrettyJsonDiff(json1, json2))
+	fmt.Println(PrettyJsonDiff(str1, str2))
+	// Output
+	//  	"Age": 0,
+	//  	"Avatar": "",
+	//  	"Company": "",
+	// -	"CreditCard": {
+	// -		"Number": "411111111111",
+	// -		"Issuer": "VISA"
+	// -	},
+	//  	"ID": 1,
+	//  	"Languages": null,
+	//  	"Name": "jinzhu",
 }
