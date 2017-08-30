@@ -3,6 +3,8 @@ package testingutils
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/theplant/testingutils"
 )
 
 func sprintDiffAndMessages(diff string, messages []interface{}) string {
@@ -33,7 +35,7 @@ func AssertEqual(
 	messages ...interface{}) bool {
 
 	t.Helper()
-	var diff = PrettyJsonDiff(expected, actual)
+	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
 		t.Error(sprintDiffAndMessages(diff, messages))
 		return false
@@ -49,7 +51,7 @@ func AssertEqualAndFatal(
 	messages ...interface{}) {
 
 	t.Helper()
-	var diff = PrettyJsonDiff(expected, actual)
+	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
 		t.Fatal(sprintDiffAndMessages(diff, messages))
 	}
