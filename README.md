@@ -3,10 +3,32 @@
 
 
 
+* [Assert Equal](#assert-equal)
+* [Assert Equal And Fatal](#assert-equal-and-fatal)
 * [Pretty Json Diff](#pretty-json-diff)
 * [Println Json](#println-json)
 
 
+
+
+## Assert Equal
+``` go
+func AssertEqual(
+    t *testing.T,
+    expected interface{},
+    actual interface{},
+    messages ...interface{}) bool
+```
+
+
+## Assert Equal And Fatal
+``` go
+func AssertEqualAndFatal(
+    t *testing.T,
+    expected interface{},
+    actual interface{},
+    messages ...interface{})
+```
 
 
 ## Pretty Json Diff
