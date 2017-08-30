@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func sprint(diff string, messages []interface{}) string {
+func sprintDiffAndMessages(diff string, messages []interface{}) string {
 	var messagesString string
 	for _, mess := range messages {
 		jsonBytes, err := json.MarshalIndent(mess, "", "\t")
@@ -35,7 +35,7 @@ func AssertEqual(
 	t.Helper()
 	var diff = PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Error(sprint(diff, messages))
+		t.Error(sprintDiffAndMessages(diff, messages))
 		return false
 	}
 
@@ -51,6 +51,6 @@ func AssertEqualAndFatal(
 	t.Helper()
 	var diff = PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Fatal(sprint(diff, messages))
+		t.Fatal(sprintDiffAndMessages(diff, messages))
 	}
 }
