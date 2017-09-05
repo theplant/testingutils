@@ -3,9 +3,17 @@ package testingutils
 import "testing"
 
 func TestAssertEqual__True(t *testing.T) {
-	AssertEqual(t, 1, 1, "message1", "message2")
+	Equal(t, 1, 1, "message1", "message2")
 }
 
 func TestAssertEqualAndFatal__True(t *testing.T) {
-	AssertEqualAndFatal(t, 2, 2, "message1", "message2")
+	EqualAndFatal(t, 2, 2, "message1", "message2")
+}
+
+func TestNoError__True(t *testing.T) {
+	NoError(t, nil, "message")
+}
+
+func TestNoErrorAndFatal(t *testing.T) {
+	NoErrorAndFatal(t, nil, "message")
 }

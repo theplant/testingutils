@@ -2,12 +2,13 @@ package testingutils
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/theplant/testingutils"
 )
 
-func sprintDiffAndMessages(diff string, messages []interface{}) string {
+func sprintMessages(text string, messages []interface{}) string {
 	var messagesString string
 	for _, mess := range messages {
 		jsonBytes, err := json.MarshalIndent(mess, "", "\t")
@@ -17,18 +18,16 @@ func sprintDiffAndMessages(diff string, messages []interface{}) string {
 		messagesString = messagesString + string(jsonBytes) + "\n\n"
 	}
 
-	var printDiff = "\n" + diff + "\n"
-
 	if messagesString == "" {
-		return printDiff
+		return text
 	}
 	// Remove "\n\n"
 	messagesString = messagesString[:len(messagesString)-2]
 
-	return printDiff + "Message:\n" + messagesString
+	return text + "\n" + "Messages:\n" + messagesString
 }
 
-func AssertEqual(
+func Equal(
 	t *testing.T,
 	expected interface{},
 	actual interface{},
@@ -37,14 +36,14 @@ func AssertEqual(
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Error(sprintDiffAndMessages(diff, messages))
+		t.Error(sprintMessages("\n"+diff, messages))
 		return false
 	}
 
 	return true
 }
 
-func AssertEqualAndFatal(
+func EqualAndFatal(
 	t *testing.T,
 	expected interface{},
 	actual interface{},
@@ -53,6 +52,26 @@ func AssertEqualAndFatal(
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Fatal(sprintDiffAndMessages(diff, messages))
+		t.Fatal(sprintMessages("\n"+diff, messages))
+	}
+}
+
+func NoError(t *testing.T, err error, messages ...interface{}) {
+	t.Helper()
+	if err != nil {
+		t.Error(sprintMessages(
+			fmt.Sprintf("Got an unexpected error:\n%+v", err),
+			messages,
+		))
+	}
+}
+
+func NoErrorAndFatal(t *testing.T, err error, messages ...interface{}) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(sprintMessages(
+			fmt.Sprintf("Got an unexpected error:\n%+v", err),
+			messages,
+		))
 	}
 }
