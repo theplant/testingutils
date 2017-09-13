@@ -1,4 +1,4 @@
-package testingutils
+package assert
 
 import (
 	"encoding/json"
