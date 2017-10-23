@@ -31,8 +31,8 @@ func Equal(
 	t *testing.T,
 	expected interface{},
 	actual interface{},
-	messages ...interface{}) bool {
-
+	messages ...interface{},
+) bool {
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
@@ -47,12 +47,29 @@ func EqualAndFatal(
 	t *testing.T,
 	expected interface{},
 	actual interface{},
-	messages ...interface{}) {
-
+	messages ...interface{},
+) {
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
 		t.Fatal(sprintMessages("\n"+diff, messages))
+	}
+}
+
+func NotEqualAndFatal(
+	t *testing.T,
+	expected interface{},
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+	var diff = testingutils.PrettyJsonDiff(expected, actual)
+	if len(diff) == 0 {
+		j, err := json.MarshalIndent(actual, "", "\t")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Fatal(sprintMessages("expected is equal to actual\n"+string(j), messages))
 	}
 }
 

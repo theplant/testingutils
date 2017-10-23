@@ -10,6 +10,10 @@ func TestAssertEqualAndFatal__True(t *testing.T) {
 	EqualAndFatal(t, 2, 2, "message1", "message2")
 }
 
+func TestNotEqualAndFatal__True(t *testing.T) {
+	NotEqualAndFatal(t, 1, 2, "message1", "message2")
+}
+
 func TestNoError__True(t *testing.T) {
 	NoError(t, nil, "message")
 }
