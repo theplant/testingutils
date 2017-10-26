@@ -92,3 +92,33 @@ func NoErrorAndFatal(t *testing.T, err error, messages ...interface{}) {
 		))
 	}
 }
+
+func EqualError(
+	t *testing.T,
+	expectedErr error,
+	actualErr error,
+	messages ...interface{},
+) {
+	t.Helper()
+	if expectedErr != actualErr {
+		t.Error(sprintMessages(
+			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
+			messages,
+		))
+	}
+}
+
+func EqualErrorAndFatal(
+	t *testing.T,
+	expectedErr error,
+	actualErr error,
+	messages ...interface{},
+) {
+	t.Helper()
+	if expectedErr != actualErr {
+		t.Fatal(sprintMessages(
+			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
+			messages,
+		))
+	}
+}
