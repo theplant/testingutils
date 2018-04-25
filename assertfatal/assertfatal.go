@@ -37,6 +37,14 @@ func prettyPrintDiff(
 	return diff
 }
 
+func isJSONNullOrEmpty(str string) bool {
+	if str == "null" || str == "{}" {
+		return true
+	} else {
+		return false
+	}
+}
+
 // If not equal then fatal.
 func Equal(
 	t *testing.T,
@@ -47,13 +55,24 @@ func Equal(
 	t.Helper()
 
 	if !reflect.DeepEqual(expected, actual) {
-		var diff string
-		diff = testingutils.PrettyJsonDiff(expected, actual)
-		if diff == "" {
+		expectedJSON := jsonMarshal(t, expected)
+		actualJSON := jsonMarshal(t, actual)
+		diff := testingutils.PrettyJsonDiff(expected, actual)
+
+		if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
 			diff = prettyPrintDiff(t, expected, actual)
 		}
+
 		t.Fatal(assert.SprintMessages("\n"+diff, messages))
 	}
+}
+
+func jsonMarshal(t *testing.T, i interface{}) string {
+	j, err := json.MarshalIndent(i, "", "\t")
+	if err != nil {
+		t.Fatal("json.MarshalIndent failed", err)
+	}
+	return string(j)
 }
 
 // If equal then fatal.
@@ -66,16 +85,9 @@ func NotEqual(
 	t.Helper()
 
 	if reflect.DeepEqual(expected, actual) {
-		var str string
-
-		j, err := json.MarshalIndent(actual, "", "\t")
-		if err != nil {
-			t.Fatal("json.MarshalIndent failed", err)
-		}
-		if len(j) == 0 {
+		str := jsonMarshal(t, actual)
+		if str == "" {
 			str = spew.Sdump(actual)
-		} else {
-			str = string(j)
 		}
 
 		t.Fatal(assert.SprintMessages("Expected is equal to actual, actual is:\n"+str, messages))
