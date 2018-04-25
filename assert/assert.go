@@ -8,7 +8,7 @@ import (
 	"github.com/theplant/testingutils"
 )
 
-func sprintMessages(text string, messages []interface{}) string {
+func SprintMessages(text string, messages []interface{}) string {
 	var messagesString string
 	for _, mess := range messages {
 		jsonBytes, err := json.MarshalIndent(mess, "", "\t")
@@ -36,7 +36,7 @@ func Equal(
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Error(sprintMessages("\n"+diff, messages))
+		t.Error(SprintMessages("\n"+diff, messages))
 		return false
 	}
 
@@ -52,7 +52,7 @@ func EqualAndFatal(
 	t.Helper()
 	var diff = testingutils.PrettyJsonDiff(expected, actual)
 	if len(diff) > 0 {
-		t.Fatal(sprintMessages("\n"+diff, messages))
+		t.Fatal(SprintMessages("\n"+diff, messages))
 	}
 }
 
@@ -69,14 +69,14 @@ func NotEqualAndFatal(
 		if err != nil {
 			t.Fatal(err)
 		}
-		t.Fatal(sprintMessages("expected is equal to actual\n"+string(j), messages))
+		t.Fatal(SprintMessages("expected is equal to actual\n"+string(j), messages))
 	}
 }
 
 func NoError(t *testing.T, err error, messages ...interface{}) {
 	t.Helper()
 	if err != nil {
-		t.Error(sprintMessages(
+		t.Error(SprintMessages(
 			fmt.Sprintf("Got an unexpected error:\n%+v", err),
 			messages,
 		))
@@ -86,7 +86,7 @@ func NoError(t *testing.T, err error, messages ...interface{}) {
 func NoErrorAndFatal(t *testing.T, err error, messages ...interface{}) {
 	t.Helper()
 	if err != nil {
-		t.Fatal(sprintMessages(
+		t.Fatal(SprintMessages(
 			fmt.Sprintf("Got an unexpected error:\n%+v", err),
 			messages,
 		))
@@ -101,7 +101,7 @@ func EqualError(
 ) {
 	t.Helper()
 	if expectedErr != actualErr {
-		t.Error(sprintMessages(
+		t.Error(SprintMessages(
 			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
 			messages,
 		))
@@ -116,7 +116,7 @@ func EqualErrorAndFatal(
 ) {
 	t.Helper()
 	if expectedErr != actualErr {
-		t.Fatal(sprintMessages(
+		t.Fatal(SprintMessages(
 			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
 			messages,
 		))
