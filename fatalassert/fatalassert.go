@@ -1,4 +1,4 @@
-package assertfatal
+package fatalassert
 
 import (
 	"encoding/json"
