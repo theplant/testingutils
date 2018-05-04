@@ -1,12 +1,29 @@
+//go:generate stringer -output stringers.go -type "HandleType"
 package assert
 
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/theplant/testingutils"
 )
+
+type HandleType int
+
+const (
+	ErrorHandle HandleType = iota
+	FatalHandle
+)
+
+var SpewConfig = spew.ConfigState{
+	Indent:           "\t",
+	DisableMethods:   true,
+	ContinueOnMethod: true,
+}
 
 func SprintMessages(text string, messages []interface{}) string {
 	var messagesString string
@@ -15,7 +32,7 @@ func SprintMessages(text string, messages []interface{}) string {
 		if err != nil {
 			panic(err)
 		}
-		messagesString = messagesString + string(jsonBytes) + "\n\n"
+		messagesString = messagesString + reflect.TypeOf(mess).String() + " " + string(jsonBytes) + "\n\n"
 	}
 
 	if messagesString == "" {
@@ -27,98 +44,135 @@ func SprintMessages(text string, messages []interface{}) string {
 	return text + "\n" + "Messages:\n" + messagesString
 }
 
-func Equal(
+func prettyPrintDiff(
 	t *testing.T,
-	expected interface{},
+	expected,
 	actual interface{},
-	messages ...interface{},
-) bool {
-	t.Helper()
-	var diff = testingutils.PrettyJsonDiff(expected, actual)
-	if len(diff) > 0 {
-		t.Error(SprintMessages("\n"+diff, messages))
+) (
+	diff string,
+) {
+	expectedString := SpewConfig.Sdump(expected)
+	actualString := SpewConfig.Sdump(actual)
+	diff, err := difflib.GetUnifiedDiffString(
+		difflib.UnifiedDiff{
+			A:        difflib.SplitLines(expectedString),
+			B:        difflib.SplitLines(actualString),
+			FromFile: "Expected",
+			FromDate: "",
+			ToFile:   "Actual",
+			ToDate:   "",
+			Context:  3,
+		})
+	if err != nil {
+		t.Fatalf("difflib.GetUnifiedDiffString failed: %v", err)
+	}
+	return diff
+}
+
+func isJSONNullOrEmpty(str string) bool {
+	if str == "null" || str == "{}" {
+		return true
+	} else {
 		return false
 	}
-
-	return true
 }
 
-func EqualAndFatal(
+// If not equal then handle.
+func Equal(
 	t *testing.T,
+	handleType HandleType,
 	expected interface{},
 	actual interface{},
 	messages ...interface{},
 ) {
 	t.Helper()
-	var diff = testingutils.PrettyJsonDiff(expected, actual)
-	if len(diff) > 0 {
-		t.Fatal(SprintMessages("\n"+diff, messages))
-	}
-}
 
-func NotEqualAndFatal(
-	t *testing.T,
-	expected interface{},
-	actual interface{},
-	messages ...interface{},
-) {
-	t.Helper()
-	var diff = testingutils.PrettyJsonDiff(expected, actual)
-	if len(diff) == 0 {
-		j, err := json.MarshalIndent(actual, "", "\t")
-		if err != nil {
-			t.Fatal(err)
+	if !reflect.DeepEqual(expected, actual) {
+		expectedJSON := jsonMarshal(t, expected)
+		actualJSON := jsonMarshal(t, actual)
+		diff := testingutils.PrettyJsonDiff(expected, actual)
+
+		if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
+			diff = prettyPrintDiff(t, expected, actual)
 		}
-		t.Fatal(SprintMessages("expected is equal to actual\n"+string(j), messages))
+
+		logs := SprintMessages("Expected is not equal to actual:\n"+diff, messages)
+		if handleType == ErrorHandle {
+			t.Error(logs)
+		} else {
+			t.Fatal(logs)
+		}
 	}
 }
 
-func NoError(t *testing.T, err error, messages ...interface{}) {
-	t.Helper()
+func jsonMarshal(t *testing.T, i interface{}) string {
+	j, err := json.MarshalIndent(i, "", "\t")
 	if err != nil {
-		t.Error(SprintMessages(
-			fmt.Sprintf("Got an unexpected error:\n%+v", err),
-			messages,
-		))
+		t.Fatalf("json.MarshalIndent failed: %v", err)
 	}
+	return string(j)
 }
 
-func NoErrorAndFatal(t *testing.T, err error, messages ...interface{}) {
+// If equal then handle.
+func NotEqual(
+	t *testing.T,
+	handleType HandleType,
+	expected interface{},
+	actual interface{},
+	messages ...interface{},
+) {
 	t.Helper()
-	if err != nil {
-		t.Fatal(SprintMessages(
-			fmt.Sprintf("Got an unexpected error:\n%+v", err),
-			messages,
-		))
+
+	if reflect.DeepEqual(expected, actual) {
+		str := jsonMarshal(t, actual)
+		if str == "" {
+			str = SpewConfig.Sdump(actual)
+		}
+
+		logs := SprintMessages("Expected is equal to actual, actual is:\n"+str, messages)
+		if handleType == ErrorHandle {
+			t.Error(logs)
+		} else {
+			t.Fatal(logs)
+		}
 	}
 }
 
+func IsNil(iface interface{}) bool {
+	if iface == nil {
+		return true
+	}
+	return reflect.ValueOf(iface).IsNil()
+}
+
+// If equal then handle.
 func EqualError(
 	t *testing.T,
-	expectedErr error,
-	actualErr error,
+	handleType HandleType,
+	expected error,
+	actual error,
 	messages ...interface{},
 ) {
 	t.Helper()
-	if expectedErr != actualErr {
-		t.Error(SprintMessages(
-			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
-			messages,
-		))
-	}
+
+	Equal(t, handleType, expected, actual, messages)
 }
 
-func EqualErrorAndFatal(
+// If has error, then handle.
+func NoError(
 	t *testing.T,
-	expectedErr error,
-	actualErr error,
+	handleType HandleType,
+	err error,
 	messages ...interface{},
 ) {
 	t.Helper()
-	if expectedErr != actualErr {
-		t.Fatal(SprintMessages(
-			fmt.Sprintf("Errors are not equal\nexpected: %+v\nactual: %+v", expectedErr, actualErr),
-			messages,
-		))
+
+	if !IsNil(err) {
+		logs := SprintMessages(fmt.Sprintf("Got an unexpected error:\n%+v", err), messages)
+		if handleType == ErrorHandle {
+			t.Error(logs)
+		} else {
+			t.Fatal(logs)
+		}
 	}
 }

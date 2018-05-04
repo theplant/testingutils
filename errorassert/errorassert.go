@@ -1,4 +1,4 @@
-package fatalassert
+package errorassert
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/theplant/testingutils/assert"
 )
 
-// If not equal then fatal.
+// If not equal then error.
 func Equal(
 	t *testing.T,
 	expected interface{},
@@ -15,10 +15,10 @@ func Equal(
 ) {
 	t.Helper()
 
-	assert.Equal(t, assert.FatalHandle, expected, actual, messages...)
+	assert.Equal(t, assert.ErrorHandle, expected, actual, messages...)
 }
 
-// If equal then fatal.
+// If equal then error.
 func NotEqual(
 	t *testing.T,
 	expected interface{},
@@ -27,10 +27,10 @@ func NotEqual(
 ) {
 	t.Helper()
 
-	assert.NotEqual(t, assert.FatalHandle, expected, actual, messages...)
+	assert.NotEqual(t, assert.ErrorHandle, expected, actual, messages...)
 }
 
-// If not equal then fatal.
+// If not equal then error.
 func EqualError(
 	t *testing.T,
 	expected error,
@@ -39,10 +39,10 @@ func EqualError(
 ) {
 	t.Helper()
 
-	assert.EqualError(t, assert.FatalHandle, expected, actual, messages...)
+	assert.EqualError(t, assert.ErrorHandle, expected, actual, messages...)
 }
 
-// If has error, then fatal.
+// If has error, then error.
 func NoError(
 	t *testing.T,
 	err error,
@@ -50,5 +50,5 @@ func NoError(
 ) {
 	t.Helper()
 
-	assert.NoError(t, assert.FatalHandle, err, messages...)
+	assert.NoError(t, assert.ErrorHandle, err, messages...)
 }
