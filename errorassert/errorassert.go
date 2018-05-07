@@ -42,7 +42,7 @@ func EqualError(
 	assert.EqualError(t, assert.ErrorHandle, expected, actual, messages...)
 }
 
-// If has error, then error.
+// If has error then error.
 func NoError(
 	t *testing.T,
 	err error,
@@ -51,4 +51,26 @@ func NoError(
 	t.Helper()
 
 	assert.NoError(t, assert.ErrorHandle, err, messages...)
+}
+
+// If not nil then error.
+func Nil(
+	t *testing.T,
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+
+	assert.Nil(t, assert.ErrorHandle, actual, messages...)
+}
+
+// If nil then error.
+func NotNil(
+	t *testing.T,
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+
+	assert.NotNil(t, assert.ErrorHandle, actual, messages...)
 }

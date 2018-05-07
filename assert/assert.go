@@ -88,8 +88,8 @@ func Equal(
 	t.Helper()
 
 	if !reflect.DeepEqual(expected, actual) {
-		expectedJSON := jsonMarshal(t, expected)
-		actualJSON := jsonMarshal(t, actual)
+		expectedJSON := jsonMarshal(expected)
+		actualJSON := jsonMarshal(actual)
 		diff := testingutils.PrettyJsonDiff(expected, actual)
 
 		if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
@@ -105,12 +105,20 @@ func Equal(
 	}
 }
 
-func jsonMarshal(t *testing.T, i interface{}) string {
+func jsonMarshal(i interface{}) string {
 	j, err := json.MarshalIndent(i, "", "\t")
 	if err != nil {
-		t.Fatalf("json.MarshalIndent failed: %v", err)
+		panic(fmt.Sprintf("json.MarshalIndent failed: %v", err))
 	}
 	return string(j)
+}
+
+func dump(iface interface{}) string {
+	str := jsonMarshal(iface)
+	if str == "" {
+		str = SpewConfig.Sdump(iface)
+	}
+	return reflect.TypeOf(iface).String() + "\n" + str + "\n"
 }
 
 // If equal then handle.
@@ -124,11 +132,7 @@ func NotEqual(
 	t.Helper()
 
 	if reflect.DeepEqual(expected, actual) {
-		str := jsonMarshal(t, actual)
-		if str == "" {
-			str = SpewConfig.Sdump(actual)
-		}
-
+		str := dump(actual)
 		logs := SprintMessages("Expected is equal to actual, actual is:\n"+str, messages)
 		if handleType == ErrorHandle {
 			t.Error(logs)
@@ -138,7 +142,7 @@ func NotEqual(
 	}
 }
 
-func IsNil(iface interface{}) bool {
+func isNil(iface interface{}) bool {
 	if iface == nil {
 		return true
 	}
@@ -158,7 +162,7 @@ func EqualError(
 	Equal(t, handleType, expected, actual, messages)
 }
 
-// If has error, then handle.
+// If has error then handle.
 func NoError(
 	t *testing.T,
 	handleType HandleType,
@@ -167,8 +171,47 @@ func NoError(
 ) {
 	t.Helper()
 
-	if !IsNil(err) {
+	if !isNil(err) {
 		logs := SprintMessages(fmt.Sprintf("Got an unexpected error:\n%+v", err), messages)
+		if handleType == ErrorHandle {
+			t.Error(logs)
+		} else {
+			t.Fatal(logs)
+		}
+	}
+}
+
+// If not nil then handle.
+func Nil(
+	t *testing.T,
+	handleType HandleType,
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+
+	if !isNil(actual) {
+		str := dump(actual)
+		logs := SprintMessages("Actual is not nil:\n"+str, messages)
+		if handleType == ErrorHandle {
+			t.Error(logs)
+		} else {
+			t.Fatal(logs)
+		}
+	}
+}
+
+// If nil then handle.
+func NotNil(
+	t *testing.T,
+	handleType HandleType,
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+
+	if isNil(actual) {
+		logs := SprintMessages("Actual is nil", messages)
 		if handleType == ErrorHandle {
 			t.Error(logs)
 		} else {
