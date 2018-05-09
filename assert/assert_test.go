@@ -46,8 +46,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	assert.SpewConfig.DisablePointerAddresses = true
-
 	os.Exit(m.Run())
 }
 

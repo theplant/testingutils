@@ -20,9 +20,10 @@ const (
 )
 
 var SpewConfig = spew.ConfigState{
-	Indent:           "\t",
-	DisableMethods:   true,
-	ContinueOnMethod: true,
+	Indent:                  "\t",
+	DisableMethods:          true,
+	DisablePointerAddresses: true,
+	ContinueOnMethod:        true,
 }
 
 func SprintMessages(text string, messages []interface{}) string {
