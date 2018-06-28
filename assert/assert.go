@@ -46,8 +46,7 @@ func SprintMessages(text string, messages []interface{}) string {
 }
 
 func getDiff(
-	t *testing.T,
-	expected,
+	expected interface{},
 	actual interface{},
 ) (
 	diff string,
@@ -65,7 +64,7 @@ func getDiff(
 			Context:  3,
 		})
 	if err != nil {
-		t.Fatalf("difflib.GetUnifiedDiffString failed: %v", err)
+		panic(fmt.Sprintf("difflib.GetUnifiedDiffString failed: %v", err))
 	}
 	return diff
 }
@@ -107,7 +106,7 @@ func printDiff(
 	diff := testingutils.PrettyJsonDiff(expected, actual)
 
 	if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
-		diff = getDiff(t, expected, actual)
+		diff = getDiff(expected, actual)
 	}
 
 	logs := SprintMessages("Expected is not equal to actual:\n"+diff, messages)
