@@ -45,7 +45,7 @@ func SprintMessages(text string, messages []interface{}) string {
 	return text + "\n" + "Messages:\n" + messagesString
 }
 
-func prettyPrintDiff(
+func getDiff(
 	t *testing.T,
 	expected,
 	actual interface{},
@@ -89,20 +89,32 @@ func Equal(
 	t.Helper()
 
 	if !reflect.DeepEqual(expected, actual) {
-		expectedJSON := jsonMarshal(expected)
-		actualJSON := jsonMarshal(actual)
-		diff := testingutils.PrettyJsonDiff(expected, actual)
+		printDiff(t, handleType, expected, actual, messages...)
+	}
+}
 
-		if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
-			diff = prettyPrintDiff(t, expected, actual)
-		}
+func printDiff(
+	t *testing.T,
+	handleType HandleType,
+	expected interface{},
+	actual interface{},
+	messages ...interface{},
+) {
+	t.Helper()
 
-		logs := SprintMessages("Expected is not equal to actual:\n"+diff, messages)
-		if handleType == ErrorHandle {
-			t.Error(logs)
-		} else {
-			t.Fatal(logs)
-		}
+	expectedJSON := jsonMarshal(expected)
+	actualJSON := jsonMarshal(actual)
+	diff := testingutils.PrettyJsonDiff(expected, actual)
+
+	if diff == "" || isJSONNullOrEmpty(expectedJSON) || isJSONNullOrEmpty(actualJSON) {
+		diff = getDiff(t, expected, actual)
+	}
+
+	logs := SprintMessages("Expected is not equal to actual:\n"+diff, messages)
+	if handleType == ErrorHandle {
+		t.Error(logs)
+	} else {
+		t.Fatal(logs)
 	}
 }
 
