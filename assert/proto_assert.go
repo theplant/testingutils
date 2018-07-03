@@ -18,6 +18,10 @@ var ProtoJSONMarshaler = &jsonpb.Marshaler{
 }
 
 func protoJSONMarshal(message proto.Message) string {
+	if message == nil {
+		return "null"
+	}
+
 	j, err := ProtoJSONMarshaler.MarshalToString(message)
 	if err != nil {
 		panic(fmt.Sprintf("ProtoJSONMarshaler.MarshalToString failed: %v", err))
