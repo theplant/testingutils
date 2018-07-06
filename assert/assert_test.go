@@ -1,206 +1,110 @@
-package assert_test
+package assert
 
 import (
-	"bufio"
-	"bytes"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-	"os/exec"
-	"path"
-	"reflect"
-	"runtime"
 	"testing"
-
-	"github.com/theplant/testingutils"
-	"github.com/theplant/testingutils/assert"
 )
-
-type Address struct {
-	City string
-}
 
 type User struct {
-	Name    string
-	Age     int
-	Address *Address
+	Name string
 }
 
-var (
-	user1 = User{
-		Name: "name1",
-		Age:  20,
-		Address: &Address{
-			City: "city1",
-		},
-	}
-
-	user2 = User{
-		Name: "name2",
-		Age:  50,
-		Address: &Address{
-			City: "city2",
-		},
-	}
-)
-
-func TestMain(m *testing.M) {
-	os.Exit(m.Run())
-}
-
-func RunTest(testName string) (result string, isFatal bool) {
-	command := exec.Command("go", "test", "-run", fmt.Sprintf("^%s$", testName))
-
-	output, err := command.CombinedOutput()
-
-	return string(output), err != nil
-}
-
-func GetFunctionName(i interface{}) string {
-	filename := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
-	return path.Ext(filename)[1:]
-}
-
-func getShortTestOutput(fullOutput string) (shortTestOutput string) {
-	reader := bufio.NewReader(bytes.NewReader([]byte(fullOutput)))
-
-	reader.ReadString('\n')
-	reader.ReadString('\n')
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			panic(err)
-		}
-
-		if line == "FAIL\n" {
-			break
-		}
-
-		shortTestOutput = shortTestOutput + string(line)
-	}
-
-	return "\n" + shortTestOutput
-}
-
-func Test(t *testing.T) {
+func TestIsUnorderedListEqualedWithTypeCheck(t *testing.T) {
 	tests := []struct {
-		testFunc       func(*testing.T)
-		expectedOutput string
+		name              string
+		list1             interface{}
+		list2             interface{}
+		expectedIsEqualed bool
 	}{
 		{
-			testFunc:       TestEqual__Equal,
-			expectedOutput: "",
+			name:              "1",
+			list1:             nil,
+			list2:             nil,
+			expectedIsEqualed: true,
 		},
 
 		{
-			testFunc: TestEqual__NotEqualAndPrintJSON,
-			expectedOutput: `
-		--- Expected
-		+++ Actual
-		@@ -1,7 +1,7 @@
-		 {
-		-	"Name": "name1",
-		-	"Age": 20,
-		+	"Name": "name2",
-		+	"Age": 50,
-		 	"Address": {
-		-		"City": "city1"
-		+		"City": "city2"
-		 	}
-		 }
-		
-`,
+			name:              "2",
+			list1:             nil,
+			list2:             []string{},
+			expectedIsEqualed: false,
 		},
 
 		{
-			testFunc: TestEqual__NotEqualAndJSONIsNull,
-			expectedOutput: `
-		--- Expected
-		+++ Actual
-		@@ -1,4 +1,4 @@
-		 (*errors.errorString)({
-		-	s: (string) (len=1) "1"
-		+	s: (string) (len=1) "2"
-		 })
-		 
-		
-`,
+			name:              "3",
+			list1:             []int{},
+			list2:             []string{},
+			expectedIsEqualed: false,
 		},
 
 		{
-			testFunc: TestEqual__NotEqualWithMessages,
-			expectedOutput: `
-		--- Expected
-		+++ Actual
-		@@ -1 +1 @@
-		-1
-		+2
-		
-		Messages:
-		assert_test.User {
-			"Name": "name1",
-			"Age": 20,
-			"Address": {
-				"City": "city1"
-			}
-		}
-		
-		*assert_test.User {
-			"Name": "name1",
-			"Age": 20,
-			"Address": {
-				"City": "city1"
-			}
-		}
-		
-		int 1
-		
-		int 1
-		
-		bool true
-		
-		bool false
-`,
+			name:              "4",
+			list1:             [1]string{},
+			list2:             []string{},
+			expectedIsEqualed: false,
+		},
+
+		{
+			name:              "5",
+			list1:             []User{},
+			list2:             []string{},
+			expectedIsEqualed: false,
+		},
+
+		{
+			name:              "6",
+			list1:             []int{1, 2},
+			list2:             []int{1, 1, 2},
+			expectedIsEqualed: false,
+		},
+
+		{
+			name:              "7",
+			list1:             []interface{}{1, 2},
+			list2:             []int{1, 2},
+			expectedIsEqualed: false,
+		},
+
+		{
+			name:              "8",
+			list1:             [3]int{1, 2, 3},
+			list2:             [3]int{1, 2, 3},
+			expectedIsEqualed: true,
+		},
+
+		{
+			name:              "9",
+			list1:             []int{1, 2, 2, 3, 3, 3},
+			list2:             []int{3, 3, 3, 2, 2, 1},
+			expectedIsEqualed: true,
+		},
+
+		{
+			name:              "10",
+			list1:             []int{},
+			list2:             []int{},
+			expectedIsEqualed: true,
+		},
+
+		{
+			name:              "11",
+			list1:             [1]int{1},
+			list2:             []int{1},
+			expectedIsEqualed: false,
+		},
+
+		{
+			name:              "12",
+			list1:             []User{{Name: "A"}, {Name: "B"}},
+			list2:             []User{{Name: "B"}, {Name: "A"}},
+			expectedIsEqualed: true,
 		},
 	}
-
 	for _, test := range tests {
-		testName := GetFunctionName(test.testFunc)
-		r, isFatal := RunTest(testName)
-
-		if test.expectedOutput == "" {
-			if isFatal {
-				t.Fatal("Exptected is ok, but actual is not ok.")
-			} else {
-				continue
+		t.Run(test.name, func(t *testing.T) {
+			gotIsEqualed := isUnorderedListEqualedWithTypeCheck(test.list1, test.list2)
+			if gotIsEqualed != test.expectedIsEqualed {
+				t.Errorf("Exptected is not equal to actual\nExptected: %v\nActual: %v", test.expectedIsEqualed, gotIsEqualed)
 			}
-		}
-
-		diff := testingutils.PrettyJsonDiff(test.expectedOutput, getShortTestOutput(r))
-		if diff != "" {
-			t.Fatal("\nName: " + testName + "\n" + diff)
-		}
+		})
 	}
-}
-
-func TestEqual__Equal(t *testing.T) {
-	assert.Equal(t, assert.FatalHandle, 1, 1)
-	assert.Equal(t, assert.FatalHandle, user1, user1)
-	assert.Equal(t, assert.FatalHandle, errors.New("1"), errors.New("1"))
-}
-
-func TestEqual__NotEqualAndPrintJSON(t *testing.T) {
-	assert.Equal(t, assert.FatalHandle, user1, user2)
-}
-
-func TestEqual__NotEqualAndJSONIsNull(t *testing.T) {
-	assert.Equal(t, assert.FatalHandle, errors.New("1"), errors.New("2"))
-}
-
-func TestEqual__NotEqualWithMessages(t *testing.T) {
-	assert.Equal(t, assert.FatalHandle, 1, 2, user1, &user1, 1, 01, true, false)
 }

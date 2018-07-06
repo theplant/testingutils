@@ -74,3 +74,23 @@ func NotNil(
 
 	assert.NotNil(t, assert.FatalHandle, actual, messages...)
 }
+
+// If not equal then fatal.
+//
+// expectedList and actualList can be slice, array or nil.
+// Compare type and elements with ignoring the order.
+// For example,
+//     * [1]int{} is not equal to []int{}
+//     * []int{1, 1, 2} is equal to []int{2, 1, 1}
+//
+// The time complexity is O(n^2).
+func UnorderedListEqual(
+	t *testing.T,
+	expectedList interface{},
+	actualList interface{},
+	messages ...interface{},
+) {
+	t.Helper()
+
+	assert.UnorderedListEqual(t, assert.FatalHandle, expectedList, actualList, messages...)
+}
