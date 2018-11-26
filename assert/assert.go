@@ -158,7 +158,19 @@ func isNil(iface interface{}) bool {
 	if iface == nil {
 		return true
 	}
-	return reflect.ValueOf(iface).IsNil()
+
+	value := reflect.ValueOf(iface)
+	kind := value.Kind()
+	if kind == reflect.Chan ||
+		kind == reflect.Func ||
+		kind == reflect.Map ||
+		kind == reflect.Ptr ||
+		kind == reflect.Interface ||
+		kind == reflect.Slice {
+		return value.IsNil()
+	}
+
+	return false
 }
 
 // If equal then handle.
