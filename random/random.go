@@ -42,3 +42,7 @@ func EmailWithLengthAndDomainName(length int, domainName string) string {
 func Email() string {
 	return EmailWithLengthAndDomainName(20, "example.com")
 }
+
+func Bool() bool {
+	return rand.Int63n(2) == 0
+}
