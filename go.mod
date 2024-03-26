@@ -8,4 +8,4 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 )
 
-require google.golang.org/protobuf v1.26.0 // indirect
+require google.golang.org/protobuf v1.33.0 // indirect
